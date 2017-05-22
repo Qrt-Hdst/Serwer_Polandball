@@ -3,6 +3,7 @@ package server_pliki;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import static server_pliki.ParseConfigFile.*;
+import static server_pliki.ParseLevelFile.*;
 /*import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;*/
@@ -41,6 +42,10 @@ public class ServerAction {
                 servermessage = GetConfigfile();//wywolanie metody ladujacej sparsowane zmienne do napisu-budowanie wiadomosci
                 serverflag_ = "CONFIGFILE: ";
                 break;
+            case "GET_LEVEL":
+                servermessage = GetLevelConfig();//wywolanie metody GetHighscores, pobranie listy najlepszych wynikow
+                serverflag_ = "LEVEL: ";
+                break;
             default:
                 servermessage = "INVALID_COMMAND";//w przypadku nieznanego zadania zostanie wyswietlona informacja o
                 break;                          //nieznanej komendzie
@@ -68,6 +73,7 @@ public class ServerAction {
 
     /**
      * funkcja wczytujaca liste najlepszych wynikow
+     *
      * @return zwraca wiadomosc (tekst) zawierajaca liste najlepszych wynikow
      */
 
@@ -89,24 +95,60 @@ public class ServerAction {
             System.err.println("Nastapil niespodziewany blad");
             System.err.println(e);
         }
+        //dodanie znaku konca wiadomosci
+        stringbuilder.append("\n");
         return stringbuilder.toString();//zbudowany ciag konertowany na string i zwracany przez metode
     }
 
     /**
-     * funkcja budujaca napis ze zmiennych sparsowanych w klasie ParseConfigfile
-     * @return zwraca wiadomosc (tekst) zawierajaca podstawowe parametry aplikacji
+     * Funkcja budujaca napis ze zmiennych sparsowanych w klasie ParseConfigfile
+     *
+     * @return wiadomosc (tekst) zawierajaca podstawowe parametry aplikacji
      */
-    private static String GetConfigfile(){
-        //wywolanie metody z klasy parsujacej plik=parsowanie pliku, za kazdym razem, gdy klient zazada danych
+    private static String GetConfigfile() {
+        //wywolanie metody z klasy parsujacej plik
         ParseConfigFile.ParseConfig();
         //zmienna, na ktorej bedziemy budowac wiadomsosc tekstowa
         StringBuilder stringbuilder = new StringBuilder();
         //dodanie do bufora napisow wszystkich sparsowanych zmiennych
-        for(int i=0;i<configbufor.length;i++){
-            stringbuilder.append(configbufor[i]+" ");//kazda liczbe(napis) oddziela spacja
+        for (int i = 0; i < configbufor.length; i++) {
+            stringbuilder.append(configbufor[i] + " ");//kazda liczbe(napis) oddziela spacja
         }
         //usuwamy ostatni " ", zeby latwiej sie obrabialo
-        stringbuilder.delete(stringbuilder.length()-1,stringbuilder.length());
+        stringbuilder.delete(stringbuilder.length() - 1, stringbuilder.length());
+        //dodanie znaku konca wiadomosci
+        stringbuilder.append("\n");
+        return stringbuilder.toString();//zbudowany ciag konertowany na string i zwracany przez metode
+    }
+
+    /**
+     * Funkcja budujaca napis ze zmiennych sparsowanych w klasie ParseLevelFile
+     *
+     * @return wiadomosc (tekst) zawierajaca podstawowe parametry danego poziomu
+     */
+
+    private static String GetLevelConfig() {
+        //wywolanie metody z klasy parsujacej plik
+        ParseLevelFile.ParseLevelFile(1);///------------>ZMIENIC<--------------
+        //zmienna, na ktorej bedziemy budowac wiadomsosc tekstowa
+        StringBuilder stringbuilder = new StringBuilder();
+        //dodanie do bufora napisow wszystkich sparsowanych zmiennych
+        for (int i = 0; i < levelbufor.length; i++) {
+            stringbuilder.append(levelbufor[i] + " ");//kazda liczbe(napis) oddziela spacja
+        }
+        //usuwamy ostatni " ", zeby latwiej sie obrabialo
+        stringbuilder.delete(stringbuilder.length() - 1, stringbuilder.length());
+        //dodanie na poczatku znak "&", bo ta wiadomosc bedzie sklejana z inna
+        stringbuilder.append("&");
+        for (int i = 0; i < buforrow.length; i++) {
+            stringbuilder.append(buforrow[i] + "|");//kazda liczbe(napis) oddziela "|
+        }
+        //usuwamy ostatni "|", zeby latwiej sie obrabialo
+        stringbuilder.delete(stringbuilder.length() - 1, stringbuilder.length());
+        //dodanie znaku konca wiadomosci
+        stringbuilder.append("\n");
+
         return stringbuilder.toString();//zbudowany ciag konertowany na string i zwracany przez metode
     }
 }
+
