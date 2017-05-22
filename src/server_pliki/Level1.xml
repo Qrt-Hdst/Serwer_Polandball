@@ -5,11 +5,11 @@
  <Amountoflines>20</Amountoflines>
  <Monsterspeed>2</Monsterspeed>
  <Amountoflifes>4</Amountoflifes>
- <Amountofordinarybombs>60</Amountofordinarybombs>
- <Amountofremotebombs>20</Amountofremotebombs>
- <Amountofhusarswings>3</Amountofhusarswings>
+ <Amountofordinarybombs>1</Amountofordinarybombs>
+ <Amountofremotebombs>1</Amountofremotebombs>
+ <Amountofhusarswings>1</Amountofhusarswings>
  <Amountoflasers>1</Amountoflasers>
- <Amountofkeys>0</Amountofkeys>
+ <Amountofkeys>1</Amountofkeys>
 
  <row>N_ NG N_ N_ N_ NW NW N_ N_ N_ N_ NW N_ N_ N_ S_ S_ S_ N_ NW</row>
  <row>N_ N_ N_ B_ S_ S_ S_ S_ S_ B_ B_ B_ B_ S_ S_ N_ N_ NW N_ N_</row>

@@ -4,9 +4,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import static server_pliki.ParseConfigFile.*;
 import static server_pliki.ParseLevelFile.*;
-/*import java.io.IOException;
+import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;*/
+import java.net.Socket;
+
 
 /**
  * klasa obslugujaca zlecenia od klienta otrzymane przez serwer
@@ -19,6 +20,9 @@ public class ServerAction {
 
     public static String serverflag_;
 
+    public static String bufor[] = new String[2];
+
+
     /**
      * funkcja oblsugujaca zadania od klienta
      *
@@ -29,6 +33,7 @@ public class ServerAction {
 
         String servercommand = command;//przypisanie otrzymanego zadanie do zmiennej
         String servermessage;//wiadomosc zwracana przez metode
+
         //obsluga zadan na podstawie otrzymanej wiadomosci od klienta
         switch (servercommand) {
             /*case "LOGIN":
@@ -42,13 +47,27 @@ public class ServerAction {
                 servermessage = GetConfigfile();//wywolanie metody ladujacej sparsowane zmienne do napisu-budowanie wiadomosci
                 serverflag_ = "CONFIGFILE: ";
                 break;
-            case "GET_LEVEL":
-                servermessage = GetLevelConfig();//wywolanie metody GetHighscores, pobranie listy najlepszych wynikow
-                serverflag_ = "LEVEL: ";
-                break;
             default:
-                servermessage = "INVALID_COMMAND";//w przypadku nieznanego zadania zostanie wyswietlona informacja o
-                break;                          //nieznanej komendzie
+                try {
+                    //robienie na chama troche, ale dziala, switch musi miec const przypadek a levele rozne bedziemy mieli
+                    WhichLevel(command);//wywolanie metody odczytujacej dane ktorego levela trzeba wyslac
+                    StringBuilder stringbuilder = new StringBuilder();
+                    stringbuilder.append("GET_LEVEL: " + bufor[1]);//tworzenie Stringa, zeby porownac z wiadomoscia
+                    String makecommandlevel = stringbuilder.toString();//konwersja na String
+                    System.out.println(makecommandlevel);
+                    if (servercommand.equals(makecommandlevel)==true) {//sprawdzenie odebrane zadanie dotyczy levela
+                        servermessage = GetLevelConfig(WhichLevel(command));//wywolanie metody tworzacej dane poziomu do wyslania
+                        serverflag_= "LEVEL: " +bufor[1]+": ";
+                    } else {
+                        throw new Exception("Nieznana komenda");//rzucenie wyjatku, jak nie wiadomo jak komenda
+                    }
+                }
+                catch (Exception e){
+                    System.out.println(e);
+                    servermessage = "INVALID_COMMAND";//w przypadku nieznanego zadania zostanie wyswietlona informacja o nieznaje komendzie
+                    serverflag_= "GET_LEVEL: " +bufor[1];
+                }
+                break;
         }
         return servermessage;//zwrocenie wiadomosci serwera przez metode ServerResponse
     }
@@ -127,28 +146,56 @@ public class ServerAction {
      * @return wiadomosc (tekst) zawierajaca podstawowe parametry danego poziomu
      */
 
-    private static String GetLevelConfig() {
-        //wywolanie metody z klasy parsujacej plik
-        ParseLevelFile.ParseLevelFile(1);///------------>ZMIENIC<--------------
-        //zmienna, na ktorej bedziemy budowac wiadomsosc tekstowa
-        StringBuilder stringbuilder = new StringBuilder();
-        //dodanie do bufora napisow wszystkich sparsowanych zmiennych
-        for (int i = 0; i < levelbufor.length; i++) {
-            stringbuilder.append(levelbufor[i] + " ");//kazda liczbe(napis) oddziela spacja
-        }
-        //usuwamy ostatni " ", zeby latwiej sie obrabialo
-        stringbuilder.delete(stringbuilder.length() - 1, stringbuilder.length());
-        //dodanie na poczatku znak "&", bo ta wiadomosc bedzie sklejana z inna
-        stringbuilder.append("&");
-        for (int i = 0; i < buforrow.length; i++) {
-            stringbuilder.append(buforrow[i] + "|");//kazda liczbe(napis) oddziela "|
-        }
-        //usuwamy ostatni "|", zeby latwiej sie obrabialo
-        stringbuilder.delete(stringbuilder.length() - 1, stringbuilder.length());
-        //dodanie znaku konca wiadomosci
-        stringbuilder.append("\n");
+    private static String GetLevelConfig(int number_of_level) {
+        try {//jak metoda WhichLevel sie dobrze wykonala to nastepuje tworzenie wiadomosci
+            if(number_of_level !=-1) {
+                //wywolanie metody z klasy parsujacej plik
+                ParseLevelFile.ParseLevelFile(number_of_level);///------------>ZMIENIC<--------------
+                //zmienna, na ktorej bedziemy budowac wiadomsosc tekstowa
+                StringBuilder stringbuilder = new StringBuilder();
+                //dodanie do bufora napisow wszystkich sparsowanych zmiennych
+                for (int i = 0; i < levelbufor.length; i++) {
+                    stringbuilder.append(levelbufor[i] + " ");//kazda liczbe(napis) oddziela spacja
+                }
+                //usuwamy ostatni " ", zeby latwiej sie obrabialo
+                stringbuilder.delete(stringbuilder.length() - 1, stringbuilder.length());
+                //dodanie na poczatku znak "&", bo ta wiadomosc bedzie sklejana z inna
+                stringbuilder.append("&");
+                for (int i = 0; i < buforrow.length; i++) {
+                    stringbuilder.append(buforrow[i] + "%");//kazda liczbe(napis) oddziela "%
+                }
+                //usuwamy ostatni "%", zeby latwiej sie obrabialo
+                stringbuilder.delete(stringbuilder.length() - 1, stringbuilder.length());
+                //dodanie znaku konca wiadomosci
+                stringbuilder.append("\n");
 
-        return stringbuilder.toString();//zbudowany ciag konertowany na string i zwracany przez metode
+                return stringbuilder.toString();//zbudowany ciag konertowany na string i zwracany przez metode
+            }
+        }catch (Exception e){
+            System.out.println(e + "Blad metody GetLevelConfig");
+        }
+        return "Blad jednej z funkcji serwera";
+    }
+
+    /**
+     * Metoda zwracajaca numer poziomu
+     * @param command zadanie klienta
+     * @return numera poziomu
+     */
+    private static int WhichLevel(String command)
+    {
+        try {
+            //bufor do rozdzielenia znakow zadania
+            bufor = command.split(" ");
+            //System.out.println(bufor[0]);
+            //System.out.println(bufor[1]);
+            //wyluskanie i konwersja numeru levela
+            int numer_poziomu = Integer.valueOf(bufor[1]);
+            return numer_poziomu;
+        }catch(Exception e){
+            System.out.println(e + "Blad metody WhichLevel");
+        }
+        return -1;//jak to nie -1, to zostanie zlapane
     }
 }
 
